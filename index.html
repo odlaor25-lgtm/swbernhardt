@@ -1,0 +1,1611 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการรีสอร์ท - Paradise Resort Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { 
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .sidebar-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+        .card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.6);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
+        .status-available { background: #10b981; }
+        .status-occupied { background: #ef4444; }
+        .status-maintenance { background: #f59e0b; }
+        .status-reserved { background: #3b82f6; }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 glass-effect text-white p-6">
+            <div class="mb-8">
+                <h1 class="text-xl font-bold">??? Paradise Resort</h1>
+                <p class="text-sm opacity-80">ระบบจัดการรีสอร์ท</p>
+            </div>
+
+            <nav class="space-y-2">
+                <div class="sidebar-item active p-3 rounded-lg" data-section="dashboard">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>แดชบอร์ด</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="rooms">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>จัดการห้องพัก</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="bookings">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>การจอง</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="guests">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>ลูกค้า</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="services">
+                    <div class="flex items-center">
+                        <span class="mr-3">???</span>
+                        <span>บริการ</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="documents">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>เอกสารการเงิน</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="reports">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>รายงาน</span>
+                    </div>
+                </div>
+                <div class="sidebar-item p-3 rounded-lg" data-section="settings">
+                    <div class="flex items-center">
+                        <span class="mr-3">??</span>
+                        <span>ตั้งค่า</span>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="mt-8 p-4 bg-white/10 rounded-lg">
+                <div class="text-sm">
+                    <p class="font-medium">ผู้ใช้งาน</p>
+                    <p class="opacity-80">Admin User</p>
+                    <p class="text-xs opacity-60 mt-2">เข้าสู่ระบบล่าสุด: วันนี้ 14:30</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="section p-6">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-white mb-2">แดชบอร์ด</h2>
+                    <p class="text-white/80">ภาพรวมการดำเนินงานรีสอร์ท</p>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ห้องทั้งหมด</p>
+                                <p class="text-2xl font-bold" id="totalRooms">50</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ห้องว่าง</p>
+                                <p class="text-2xl font-bold text-green-400" id="availableRooms">23</p>
+                            </div>
+                            <div class="text-3xl">?</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">การจองวันนี้</p>
+                                <p class="text-2xl font-bold text-blue-400" id="todayBookings">12</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">รายได้วันนี้</p>
+                                <p class="text-2xl font-bold text-yellow-400" id="todayRevenue">฿45,600</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid lg:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-white text-lg font-semibold mb-4">?? อัตราการเข้าพัก (7 วันล่าสุด)</h3>
+                        <canvas id="occupancyChart" width="400" height="200"></canvas>
+                    </div>
+
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-white text-lg font-semibold mb-4">?? รายได้รายเดือน</h3>
+                        <canvas id="revenueChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-white text-lg font-semibold mb-4">?? กิจกรรมล่าสุด</h3>
+                    <div class="space-y-3" id="recentActivities">
+                        <div class="flex items-center p-3 bg-white/10 rounded-lg">
+                            <span class="mr-3">?</span>
+                            <div class="flex-1">
+                                <p class="text-white text-sm">การจองใหม่ - ห้อง 205</p>
+                                <p class="text-white/60 text-xs">5 นาทีที่แล้ว</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-3 bg-white/10 rounded-lg">
+                            <span class="mr-3">??</span>
+                            <div class="flex-1">
+                                <p class="text-white text-sm">ห้อง 301 เข้าสู่ระบบซ่อมบำรุง</p>
+                                <p class="text-white/60 text-xs">15 นาทีที่แล้ว</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-3 bg-white/10 rounded-lg">
+                            <span class="mr-3">??</span>
+                            <div class="flex-1">
+                                <p class="text-white text-sm">ชำระเงินเสร็จสิ้น - การจอง #12345</p>
+                                <p class="text-white/60 text-xs">30 นาทีที่แล้ว</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rooms Section -->
+            <div id="rooms" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">จัดการห้องพัก</h2>
+                        <p class="text-white/80">จัดการข้อมูลห้องพักและสถานะ</p>
+                    </div>
+                    <button id="addRoomBtn" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors">
+                        ? เพิ่มห้องใหม่
+                    </button>
+                </div>
+
+                <!-- Room Filters -->
+                <div class="glass-effect rounded-xl p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <select id="roomTypeFilter" class="input-field p-3 rounded-lg text-white">
+                            <option value="">ประเภทห้องทั้งหมด</option>
+                            <option value="standard">Standard</option>
+                            <option value="deluxe">Deluxe</option>
+                            <option value="suite">Suite</option>
+                            <option value="villa">Villa</option>
+                        </select>
+                        <select id="roomStatusFilter" class="input-field p-3 rounded-lg text-white">
+                            <option value="">สถานะทั้งหมด</option>
+                            <option value="available">ว่าง</option>
+                            <option value="occupied">มีผู้เข้าพัก</option>
+                            <option value="maintenance">ซ่อมบำรุง</option>
+                            <option value="reserved">จองแล้ว</option>
+                        </select>
+                        <input type="text" id="roomSearchInput" placeholder="ค้นหาเลขห้อง..." 
+                               class="input-field p-3 rounded-lg text-white placeholder-white/60">
+                        <button id="searchRoomsBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            ?? ค้นหา
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rooms Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="roomsGrid">
+                    <!-- Rooms will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Bookings Section -->
+            <div id="bookings" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">การจอง</h2>
+                        <p class="text-white/80">จัดการการจองและรายการลูกค้า</p>
+                    </div>
+                    <button id="addBookingBtn" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors">
+                        ? จองใหม่
+                    </button>
+                </div>
+
+                <!-- Booking Filters -->
+                <div class="glass-effect rounded-xl p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <input type="date" id="checkInFilter" class="input-field p-3 rounded-lg text-white">
+                        <input type="date" id="checkOutFilter" class="input-field p-3 rounded-lg text-white">
+                        <select id="bookingStatusFilter" class="input-field p-3 rounded-lg text-white">
+                            <option value="">สถานะทั้งหมด</option>
+                            <option value="confirmed">ยืนยันแล้ว</option>
+                            <option value="pending">รอยืนยัน</option>
+                            <option value="cancelled">ยกเลิก</option>
+                            <option value="completed">เสร็จสิ้น</option>
+                        </select>
+                        <input type="text" id="guestSearchInput" placeholder="ค้นหาชื่อลูกค้า..." 
+                               class="input-field p-3 rounded-lg text-white placeholder-white/60">
+                        <button id="searchBookingsBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            ?? ค้นหา
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bookings Table -->
+                <div class="glass-effect rounded-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-white">
+                            <thead class="bg-white/20">
+                                <tr>
+                                    <th class="p-4 text-left">รหัสการจอง</th>
+                                    <th class="p-4 text-left">ลูกค้า</th>
+                                    <th class="p-4 text-left">ห้อง</th>
+                                    <th class="p-4 text-left">เช็คอิน</th>
+                                    <th class="p-4 text-left">เช็คเอาท์</th>
+                                    <th class="p-4 text-left">สถานะ</th>
+                                    <th class="p-4 text-left">ยอดรวม</th>
+                                    <th class="p-4 text-left">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingsTableBody">
+                                <!-- Bookings will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Guests Section -->
+            <div id="guests" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">ลูกค้า</h2>
+                        <p class="text-white/80">จัดการข้อมูลลูกค้าและประวัติการเข้าพัก</p>
+                    </div>
+                    <button id="addGuestBtn" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors">
+                        ? เพิ่มลูกค้าใหม่
+                    </button>
+                </div>
+
+                <!-- Guest Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ลูกค้าทั้งหมด</p>
+                                <p class="text-2xl font-bold">1,247</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ลูกค้าใหม่เดือนนี้</p>
+                                <p class="text-2xl font-bold text-green-400">89</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ลูกค้า VIP</p>
+                                <p class="text-2xl font-bold text-yellow-400">156</p>
+                            </div>
+                            <div class="text-3xl">?</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guests Table -->
+                <div class="glass-effect rounded-xl overflow-hidden">
+                    <div class="p-4 border-b border-white/20">
+                        <input type="text" id="guestSearch" placeholder="ค้นหาลูกค้า..." 
+                               class="input-field p-3 rounded-lg text-white placeholder-white/60 w-full max-w-md">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-white">
+                            <thead class="bg-white/20">
+                                <tr>
+                                    <th class="p-4 text-left">รหัสลูกค้า</th>
+                                    <th class="p-4 text-left">ชื่อ-นามสกุล</th>
+                                    <th class="p-4 text-left">อีเมล</th>
+                                    <th class="p-4 text-left">โทรศัพท์</th>
+                                    <th class="p-4 text-left">ประเภท</th>
+                                    <th class="p-4 text-left">การเข้าพักล่าสุด</th>
+                                    <th class="p-4 text-left">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="guestsTableBody">
+                                <!-- Guests will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Section -->
+            <div id="services" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">บริการ</h2>
+                        <p class="text-white/80">จัดการบริการเสริมและสิ่งอำนวยความสะดวก</p>
+                    </div>
+                    <button id="addServiceBtn" class="bg-white text-purple-600 px-6 py-3 rounded-lg font-semibold hover:bg-white/90 transition-colors">
+                        ? เพิ่มบริการใหม่
+                    </button>
+                </div>
+
+                <!-- Services Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="servicesGrid">
+                    <!-- Services will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Documents Section -->
+            <div id="documents" class="section p-6 hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">เอกสารการเงิน</h2>
+                        <p class="text-white/80">จัดการใบเสร็จ ใบแจ้งค่าใช้จ่าย และใบกำกับภาษี</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="createReceiptBtn" class="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+                            ?? สร้างใบเสร็จ
+                        </button>
+                        <button id="createInvoiceBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                            ?? สร้างใบแจ้งหนี้
+                        </button>
+                        <button id="createTaxInvoiceBtn" class="bg-purple-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-600 transition-colors">
+                            ?? สร้างใบกำกับภาษี
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Document Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ใบเสร็จเดือนนี้</p>
+                                <p class="text-2xl font-bold">156</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ใบแจ้งหนี้ค้างชำระ</p>
+                                <p class="text-2xl font-bold text-yellow-400">23</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ใบกำกับภาษี</p>
+                                <p class="text-2xl font-bold text-green-400">89</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+
+                    <div class="card glass-effect rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm opacity-80">ยอดรวมเดือนนี้</p>
+                                <p class="text-2xl font-bold text-blue-400">฿2.4M</p>
+                            </div>
+                            <div class="text-3xl">??</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Filters -->
+                <div class="glass-effect rounded-xl p-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <select id="docTypeFilter" class="input-field p-3 rounded-lg text-white">
+                            <option value="">ประเภทเอกสารทั้งหมด</option>
+                            <option value="receipt">ใบเสร็จ</option>
+                            <option value="invoice">ใบแจ้งหนี้</option>
+                            <option value="tax_invoice">ใบกำกับภาษี</option>
+                        </select>
+                        <input type="date" id="docDateFrom" class="input-field p-3 rounded-lg text-white">
+                        <input type="date" id="docDateTo" class="input-field p-3 rounded-lg text-white">
+                        <input type="text" id="docSearchInput" placeholder="ค้นหาเลขที่เอกสาร..." 
+                               class="input-field p-3 rounded-lg text-white placeholder-white/60">
+                        <button id="searchDocsBtn" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                            ?? ค้นหา
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Documents Table -->
+                <div class="glass-effect rounded-xl overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-white">
+                            <thead class="bg-white/20">
+                                <tr>
+                                    <th class="p-4 text-left">เลขที่เอกสาร</th>
+                                    <th class="p-4 text-left">ประเภท</th>
+                                    <th class="p-4 text-left">ลูกค้า</th>
+                                    <th class="p-4 text-left">วันที่</th>
+                                    <th class="p-4 text-left">ยอดเงิน</th>
+                                    <th class="p-4 text-left">สถานะ</th>
+                                    <th class="p-4 text-left">จัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="documentsTableBody">
+                                <!-- Documents will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div id="reports" class="section p-6 hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-white mb-2">รายงาน</h2>
+                    <p class="text-white/80">รายงานและสถิติการดำเนินงาน</p>
+                </div>
+
+                <!-- Report Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="glass-effect rounded-xl p-6 text-white cursor-pointer hover:bg-white/20 transition-colors">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">??</span>
+                            <h3 class="text-lg font-semibold">รายงานรายได้</h3>
+                        </div>
+                        <p class="text-sm opacity-80 mb-4">รายได้รายวัน รายเดือน และรายปี</p>
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                            ดูรายงาน
+                        </button>
+                    </div>
+
+                    <div class="glass-effect rounded-xl p-6 text-white cursor-pointer hover:bg-white/20 transition-colors">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">??</span>
+                            <h3 class="text-lg font-semibold">รายงานการเข้าพัก</h3>
+                        </div>
+                        <p class="text-sm opacity-80 mb-4">อัตราการเข้าพักและสถิติห้อง</p>
+                        <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-600 transition-colors">
+                            ดูรายงาน
+                        </button>
+                    </div>
+
+                    <div class="glass-effect rounded-xl p-6 text-white cursor-pointer hover:bg-white/20 transition-colors">
+                        <div class="flex items-center mb-4">
+                            <span class="text-2xl mr-3">??</span>
+                            <h3 class="text-lg font-semibold">รายงานลูกค้า</h3>
+                        </div>
+                        <p class="text-sm opacity-80 mb-4">ข้อมูลลูกค้าและพฤติกรรมการจอง</p>
+                        <button class="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-600 transition-colors">
+                            ดูรายงาน
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="glass-effect rounded-xl p-6">
+                    <h3 class="text-white text-lg font-semibold mb-6">?? สถิติด่วน</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-blue-400">85%</p>
+                            <p class="text-white/80 text-sm">อัตราการเข้าพัก</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-green-400">4.8</p>
+                            <p class="text-white/80 text-sm">คะแนนรีวิว</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-yellow-400">3.2</p>
+                            <p class="text-white/80 text-sm">ค่าเฉลี่ยคืนพัก</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-purple-400">78%</p>
+                            <p class="text-white/80 text-sm">ลูกค้าเก่า</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settings" class="section p-6 hidden">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-white mb-2">ตั้งค่า</h2>
+                    <p class="text-white/80">ตั้งค่าระบบและการกำหนดค่าต่างๆ</p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- General Settings -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-white text-lg font-semibold mb-4">?? ตั้งค่าทั่วไป</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-white text-sm mb-2">ชื่อรีสอร์ท</label>
+                                <input type="text" value="Paradise Resort" 
+                                       class="input-field w-full p-3 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-white text-sm mb-2">เวลาเช็คอิน</label>
+                                <input type="time" value="14:00" 
+                                       class="input-field w-full p-3 rounded-lg text-white">
+                            </div>
+                            <div>
+                                <label class="block text-white text-sm mb-2">เวลาเช็คเอาท์</label>
+                                <input type="time" value="12:00" 
+                                       class="input-field w-full p-3 rounded-lg text-white">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-white text-lg font-semibold mb-4">?? การแจ้งเตือน</h3>
+                        <div class="space-y-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3" checked>
+                                <span class="text-white text-sm">แจ้งเตือนการจองใหม่</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3" checked>
+                                <span class="text-white text-sm">แจ้งเตือนการยกเลิก</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-3">
+                                <span class="text-white text-sm">แจ้งเตือนการซ่อมบำรุง</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <button class="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-600 transition-colors">
+                        ?? บันทึกการตั้งค่า
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Document Creation Modal -->
+    <div id="documentModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="glass-effect rounded-2xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-white text-xl font-semibold mb-4" id="documentModalTitle">?? สร้างเอกสาร</h3>
+            <form id="documentForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white text-sm mb-2">เลขที่เอกสาร</label>
+                        <input type="text" id="docNumber" required readonly
+                               class="input-field w-full p-3 rounded-lg text-white bg-white/20">
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm mb-2">วันที่</label>
+                        <input type="date" id="docDate" required
+                               class="input-field w-full p-3 rounded-lg text-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-white text-sm mb-2">ลูกค้า</label>
+                        <select id="docCustomer" required class="input-field w-full p-3 rounded-lg text-white">
+                            <option value="">เลือกลูกค้า</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm mb-2">การจอง</label>
+                        <select id="docBooking" class="input-field w-full p-3 rounded-lg text-white">
+                            <option value="">เลือกการจอง (ถ้ามี)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tax Invoice Fields -->
+                <div id="taxInvoiceFields" class="hidden space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-white text-sm mb-2">เลขประจำตัวผู้เสียภาษี</label>
+                            <input type="text" id="taxId" 
+                                   class="input-field w-full p-3 rounded-lg text-white placeholder-white/60"
+                                   placeholder="0-0000-00000-00-0">
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm mb-2">ที่อยู่ออกใบกำกับภาษี</label>
+                            <textarea id="taxAddress" rows="2"
+                                      class="input-field w-full p-3 rounded-lg text-white placeholder-white/60"
+                                      placeholder="ที่อยู่สำหรับออกใบกำกับภาษี"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Section -->
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-white text-sm">รายการ</label>
+                        <button type="button" id="addItemBtn" class="bg-green-500 text-white px-3 py-1 rounded text-sm hover:bg-green-600 transition-colors">
+                            ? เพิ่มรายการ
+                        </button>
+                    </div>
+                    <div id="itemsList" class="space-y-2">
+                        <!-- Items will be added here -->
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4 pt-4 border-t border-white/20">
+                    <div>
+                        <label class="block text-white text-sm mb-2">ยอดรวม</label>
+                        <input type="number" id="docSubtotal" readonly
+                               class="input-field w-full p-3 rounded-lg text-white bg-white/20">
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm mb-2">ภาษี (7%)</label>
+                        <input type="number" id="docTax" readonly
+                               class="input-field w-full p-3 rounded-lg text-white bg-white/20">
+                    </div>
+                    <div>
+                        <label class="block text-white text-sm mb-2">ยอดสุทธิ</label>
+                        <input type="number" id="docTotal" readonly
+                               class="input-field w-full p-3 rounded-lg text-white bg-white/20 font-bold">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" id="cancelDocument" 
+                            class="flex-1 bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button type="button" id="previewDocument" 
+                            class="flex-1 bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition-colors">
+                        ??? ดูตัวอย่าง
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
+                        ?? บันทึก
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Preview Modal -->
+    <div id="documentPreviewModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-4 border-b flex justify-between items-center">
+                <h3 class="text-lg font-semibold">ตัวอย่างเอกสาร</h3>
+                <div class="flex gap-2">
+                    <button id="downloadPdfBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                        ?? ดาวน์โหลด PDF
+                    </button>
+                    <button id="saveToGoogleDriveBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        ?? บันทึกใน Google Drive
+                    </button>
+                    <button id="closePreviewBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        ? ปิด
+                    </button>
+                </div>
+            </div>
+            <div id="documentPreviewContent" class="p-8">
+                <!-- Document preview will be generated here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div id="addRoomModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+        <div class="glass-effect rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-white text-xl font-semibold mb-4">? เพิ่มห้องใหม่</h3>
+            <form id="addRoomForm" class="space-y-4">
+                <div>
+                    <label class="block text-white text-sm mb-2">เลขห้อง</label>
+                    <input type="text" id="roomNumber" required
+                           class="input-field w-full p-3 rounded-lg text-white placeholder-white/60"
+                           placeholder="เช่น 101, 205">
+                </div>
+                <div>
+                    <label class="block text-white text-sm mb-2">ประเภทห้อง</label>
+                    <select id="roomType" required class="input-field w-full p-3 rounded-lg text-white">
+                        <option value="">เลือกประเภทห้อง</option>
+                        <option value="standard">Standard</option>
+                        <option value="deluxe">Deluxe</option>
+                        <option value="suite">Suite</option>
+                        <option value="villa">Villa</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-white text-sm mb-2">ราคาต่อคืน (บาท)</label>
+                    <input type="number" id="roomPrice" required
+                           class="input-field w-full p-3 rounded-lg text-white placeholder-white/60"
+                           placeholder="เช่น 2500">
+                </div>
+                <div>
+                    <label class="block text-white text-sm mb-2">จำนวนผู้เข้าพักสูงสุด</label>
+                    <input type="number" id="roomCapacity" required min="1" max="10"
+                           class="input-field w-full p-3 rounded-lg text-white placeholder-white/60"
+                           placeholder="เช่น 2">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button type="button" id="cancelAddRoom" 
+                            class="flex-1 bg-white/20 text-white py-3 rounded-lg hover:bg-white/30 transition-colors">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors">
+                        เพิ่มห้อง
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        let rooms = [
+            { id: 1, number: '101', type: 'standard', price: 2000, capacity: 2, status: 'available' },
+            { id: 2, number: '102', type: 'standard', price: 2000, capacity: 2, status: 'occupied' },
+            { id: 3, number: '201', type: 'deluxe', price: 3500, capacity: 3, status: 'available' },
+            { id: 4, number: '202', type: 'deluxe', price: 3500, capacity: 3, status: 'maintenance' },
+            { id: 5, number: '301', type: 'suite', price: 5000, capacity: 4, status: 'reserved' },
+            { id: 6, number: '401', type: 'villa', price: 8000, capacity: 6, status: 'available' }
+        ];
+
+        let bookings = [
+            { id: 1, guestName: 'สมชาย ใจดี', roomNumber: '102', checkIn: '2024-01-15', checkOut: '2024-01-18', status: 'confirmed', total: 6000 },
+            { id: 2, guestName: 'สมหญิง รักสวย', roomNumber: '301', checkIn: '2024-01-16', checkOut: '2024-01-20', status: 'pending', total: 20000 },
+            { id: 3, guestName: 'จอห์น สมิธ', roomNumber: '201', checkIn: '2024-01-14', checkOut: '2024-01-17', status: 'completed', total: 10500 }
+        ];
+
+        let guests = [
+            { id: 1, name: 'สมชาย ใจดี', email: 'somchai@email.com', phone: '081-234-5678', type: 'regular', lastVisit: '2024-01-15' },
+            { id: 2, name: 'สมหญิง รักสวย', email: 'somying@email.com', phone: '082-345-6789', type: 'vip', lastVisit: '2024-01-10' },
+            { id: 3, name: 'จอห์น สมิธ', email: 'john@email.com', phone: '083-456-7890', type: 'regular', lastVisit: '2024-01-05' }
+        ];
+
+        let services = [
+            { id: 1, name: 'สปา', description: 'บริการนวดและสปา', price: 1500, category: 'wellness' },
+            { id: 2, name: 'ร้านอาหาร', description: 'อาหารไทยและนานาชาติ', price: 800, category: 'dining' },
+            { id: 3, name: 'ฟิตเนส', description: 'ห้องออกกำลังกาย 24 ชม.', price: 300, category: 'fitness' },
+            { id: 4, name: 'สระว่ายน้ำ', description: 'สระว่ายน้ำกลางแจ้ง', price: 200, category: 'recreation' }
+        ];
+
+        let documents = [
+            { id: 1, number: 'RC2024001', type: 'receipt', customerName: 'สมชาย ใจดี', date: '2024-01-15', amount: 6000, status: 'paid' },
+            { id: 2, number: 'INV2024001', type: 'invoice', customerName: 'สมหญิง รักสวย', date: '2024-01-16', amount: 20000, status: 'pending' },
+            { id: 3, number: 'TAX2024001', type: 'tax_invoice', customerName: 'บริษัท ABC จำกัด', date: '2024-01-14', amount: 10700, status: 'paid' }
+        ];
+
+        let currentDocumentType = '';
+        let documentItems = [];
+
+        // Navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const section = this.dataset.section;
+                
+                // Update active sidebar item
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show selected section
+                document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+                document.getElementById(section).classList.remove('hidden');
+                
+                // Load section data
+                loadSectionData(section);
+            });
+        });
+
+        function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'rooms':
+                    loadRooms();
+                    break;
+                case 'bookings':
+                    loadBookings();
+                    break;
+                case 'guests':
+                    loadGuests();
+                    break;
+                case 'services':
+                    loadServices();
+                    break;
+                case 'documents':
+                    loadDocuments();
+                    break;
+            }
+        }
+
+        // Dashboard
+        function loadDashboard() {
+            // Update stats
+            document.getElementById('totalRooms').textContent = rooms.length;
+            document.getElementById('availableRooms').textContent = rooms.filter(r => r.status === 'available').length;
+            document.getElementById('todayBookings').textContent = bookings.length;
+            
+            // Create charts
+            createOccupancyChart();
+            createRevenueChart();
+        }
+
+        function createOccupancyChart() {
+            const ctx = document.getElementById('occupancyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส', 'อา'],
+                    datasets: [{
+                        label: 'อัตราการเข้าพัก (%)',
+                        data: [75, 82, 68, 90, 85, 95, 88],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    },
+                    scales: {
+                        y: { 
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: { 
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'],
+                    datasets: [{
+                        label: 'รายได้ (บาท)',
+                        data: [450000, 520000, 480000, 600000, 580000, 650000],
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: 'white' } }
+                    },
+                    scales: {
+                        y: { 
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: { 
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Rooms
+        function loadRooms() {
+            const grid = document.getElementById('roomsGrid');
+            grid.innerHTML = rooms.map(room => `
+                <div class="card glass-effect rounded-xl p-4 text-white">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h3 class="text-lg font-semibold">ห้อง ${room.number}</h3>
+                            <p class="text-sm opacity-80">${getRoomTypeName(room.type)}</p>
+                        </div>
+                        <span class="status-${room.status} px-2 py-1 rounded-full text-xs text-white">
+                            ${getStatusName(room.status)}
+                        </span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <p>?? ฿${room.price.toLocaleString()}/คืน</p>
+                        <p>?? ${room.capacity} ท่าน</p>
+                    </div>
+                    <div class="flex gap-2 mt-4">
+                        <button class="flex-1 bg-blue-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                            แก้ไข
+                        </button>
+                        <button class="flex-1 bg-green-500 text-white py-2 px-3 rounded-lg text-sm hover:bg-green-600 transition-colors">
+                            จอง
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getRoomTypeName(type) {
+            const types = {
+                'standard': 'Standard',
+                'deluxe': 'Deluxe',
+                'suite': 'Suite',
+                'villa': 'Villa'
+            };
+            return types[type] || type;
+        }
+
+        function getStatusName(status) {
+            const statuses = {
+                'available': 'ว่าง',
+                'occupied': 'มีผู้เข้าพัก',
+                'maintenance': 'ซ่อมบำรุง',
+                'reserved': 'จองแล้ว'
+            };
+            return statuses[status] || status;
+        }
+
+        // Bookings
+        function loadBookings() {
+            const tbody = document.getElementById('bookingsTableBody');
+            tbody.innerHTML = bookings.map(booking => `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="p-4">#${booking.id.toString().padStart(4, '0')}</td>
+                    <td class="p-4">${booking.guestName}</td>
+                    <td class="p-4">${booking.roomNumber}</td>
+                    <td class="p-4">${formatDate(booking.checkIn)}</td>
+                    <td class="p-4">${formatDate(booking.checkOut)}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${getBookingStatusClass(booking.status)}">
+                            ${getBookingStatusName(booking.status)}
+                        </span>
+                    </td>
+                    <td class="p-4">฿${booking.total.toLocaleString()}</td>
+                    <td class="p-4">
+                        <div class="flex gap-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                                แก้ไข
+                            </button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors">
+                                ยกเลิก
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH');
+        }
+
+        function getBookingStatusClass(status) {
+            const classes = {
+                'confirmed': 'bg-green-500',
+                'pending': 'bg-yellow-500',
+                'cancelled': 'bg-red-500',
+                'completed': 'bg-blue-500'
+            };
+            return classes[status] || 'bg-gray-500';
+        }
+
+        function getBookingStatusName(status) {
+            const names = {
+                'confirmed': 'ยืนยันแล้ว',
+                'pending': 'รอยืนยัน',
+                'cancelled': 'ยกเลิก',
+                'completed': 'เสร็จสิ้น'
+            };
+            return names[status] || status;
+        }
+
+        // Guests
+        function loadGuests() {
+            const tbody = document.getElementById('guestsTableBody');
+            tbody.innerHTML = guests.map(guest => `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="p-4">#${guest.id.toString().padStart(4, '0')}</td>
+                    <td class="p-4">${guest.name}</td>
+                    <td class="p-4">${guest.email}</td>
+                    <td class="p-4">${guest.phone}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${guest.type === 'vip' ? 'bg-yellow-500' : 'bg-blue-500'}">
+                            ${guest.type === 'vip' ? 'VIP' : 'ทั่วไป'}
+                        </span>
+                    </td>
+                    <td class="p-4">${formatDate(guest.lastVisit)}</td>
+                    <td class="p-4">
+                        <div class="flex gap-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                                ดูข้อมูล
+                            </button>
+                            <button class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors">
+                                จอง
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Services
+        function loadServices() {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = services.map(service => `
+                <div class="card glass-effect rounded-xl p-6 text-white">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-semibold">${service.name}</h3>
+                        <span class="text-2xl">${getServiceIcon(service.category)}</span>
+                    </div>
+                    <p class="text-sm opacity-80 mb-4">${service.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-semibold">฿${service.price.toLocaleString()}</span>
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-600 transition-colors">
+                            แก้ไข
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getServiceIcon(category) {
+            const icons = {
+                'wellness': '??',
+                'dining': '???',
+                'fitness': '??',
+                'recreation': '??'
+            };
+            return icons[category] || '???';
+        }
+
+        // Documents
+        function loadDocuments() {
+            const tbody = document.getElementById('documentsTableBody');
+            tbody.innerHTML = documents.map(doc => `
+                <tr class="border-b border-white/10 hover:bg-white/5">
+                    <td class="p-4">${doc.number}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${getDocumentTypeClass(doc.type)}">
+                            ${getDocumentTypeName(doc.type)}
+                        </span>
+                    </td>
+                    <td class="p-4">${doc.customerName}</td>
+                    <td class="p-4">${formatDate(doc.date)}</td>
+                    <td class="p-4">฿${doc.amount.toLocaleString()}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs ${getDocumentStatusClass(doc.status)}">
+                            ${getDocumentStatusName(doc.status)}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex gap-2">
+                            <button onclick="viewDocument(${doc.id})" class="bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600 transition-colors">
+                                ??? ดู
+                            </button>
+                            <button onclick="downloadDocument(${doc.id})" class="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition-colors">
+                                ?? PDF
+                            </button>
+                            <button onclick="editDocument(${doc.id})" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs hover:bg-yellow-600 transition-colors">
+                                ?? แก้ไข
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getDocumentTypeName(type) {
+            const types = {
+                'receipt': 'ใบเสร็จ',
+                'invoice': 'ใบแจ้งหนี้',
+                'tax_invoice': 'ใบกำกับภาษี'
+            };
+            return types[type] || type;
+        }
+
+        function getDocumentTypeClass(type) {
+            const classes = {
+                'receipt': 'bg-green-500',
+                'invoice': 'bg-blue-500',
+                'tax_invoice': 'bg-purple-500'
+            };
+            return classes[type] || 'bg-gray-500';
+        }
+
+        function getDocumentStatusName(status) {
+            const names = {
+                'paid': 'ชำระแล้ว',
+                'pending': 'รอชำระ',
+                'cancelled': 'ยกเลิก',
+                'overdue': 'เกินกำหนด'
+            };
+            return names[status] || status;
+        }
+
+        function getDocumentStatusClass(status) {
+            const classes = {
+                'paid': 'bg-green-500',
+                'pending': 'bg-yellow-500',
+                'cancelled': 'bg-red-500',
+                'overdue': 'bg-red-600'
+            };
+            return classes[status] || 'bg-gray-500';
+        }
+
+        // Modal handling
+        document.getElementById('addRoomBtn').addEventListener('click', () => {
+            document.getElementById('addRoomModal').classList.remove('hidden');
+            document.getElementById('addRoomModal').classList.add('flex');
+        });
+
+        document.getElementById('cancelAddRoom').addEventListener('click', () => {
+            document.getElementById('addRoomModal').classList.add('hidden');
+            document.getElementById('addRoomModal').classList.remove('flex');
+        });
+
+        document.getElementById('addRoomForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newRoom = {
+                id: rooms.length + 1,
+                number: document.getElementById('roomNumber').value,
+                type: document.getElementById('roomType').value,
+                price: parseInt(document.getElementById('roomPrice').value),
+                capacity: parseInt(document.getElementById('roomCapacity').value),
+                status: 'available'
+            };
+            
+            rooms.push(newRoom);
+            loadRooms();
+            
+            document.getElementById('addRoomModal').classList.add('hidden');
+            document.getElementById('addRoomModal').classList.remove('flex');
+            document.getElementById('addRoomForm').reset();
+            
+            alert('เพิ่มห้องใหม่เรียบร้อยแล้ว!');
+        });
+
+        // Document Management Functions
+        function openDocumentModal(type) {
+            currentDocumentType = type;
+            documentItems = [];
+            
+            const modal = document.getElementById('documentModal');
+            const title = document.getElementById('documentModalTitle');
+            const taxFields = document.getElementById('taxInvoiceFields');
+            
+            // Set title and show/hide tax fields
+            switch(type) {
+                case 'receipt':
+                    title.textContent = '?? สร้างใบเสร็จ';
+                    taxFields.classList.add('hidden');
+                    break;
+                case 'invoice':
+                    title.textContent = '?? สร้างใบแจ้งหนี้';
+                    taxFields.classList.add('hidden');
+                    break;
+                case 'tax_invoice':
+                    title.textContent = '?? สร้างใบกำกับภาษี';
+                    taxFields.classList.remove('hidden');
+                    break;
+            }
+            
+            // Generate document number
+            const prefix = type === 'receipt' ? 'RC' : type === 'invoice' ? 'INV' : 'TAX';
+            const year = new Date().getFullYear();
+            const nextNumber = (documents.filter(d => d.type === type).length + 1).toString().padStart(3, '0');
+            document.getElementById('docNumber').value = `${prefix}${year}${nextNumber}`;
+            
+            // Set today's date
+            document.getElementById('docDate').value = new Date().toISOString().split('T')[0];
+            
+            // Populate customers
+            const customerSelect = document.getElementById('docCustomer');
+            customerSelect.innerHTML = '<option value="">เลือกลูกค้า</option>' + 
+                guests.map(guest => `<option value="${guest.id}">${guest.name}</option>`).join('');
+            
+            // Populate bookings
+            const bookingSelect = document.getElementById('docBooking');
+            bookingSelect.innerHTML = '<option value="">เลือกการจอง (ถ้ามี)</option>' + 
+                bookings.map(booking => `<option value="${booking.id}">การจอง #${booking.id} - ${booking.guestName}</option>`).join('');
+            
+            // Add initial item
+            addDocumentItem();
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function addDocumentItem() {
+            const itemsList = document.getElementById('itemsList');
+            const itemIndex = documentItems.length;
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'grid grid-cols-12 gap-2 items-end';
+            itemDiv.innerHTML = `
+                <div class="col-span-5">
+                    <input type="text" placeholder="รายการ" 
+                           class="input-field w-full p-2 rounded text-white text-sm"
+                           onchange="updateDocumentItem(${itemIndex}, 'description', this.value)">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" placeholder="จำนวน" min="1" value="1"
+                           class="input-field w-full p-2 rounded text-white text-sm"
+                           onchange="updateDocumentItem(${itemIndex}, 'quantity', this.value)">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" placeholder="ราคา" min="0"
+                           class="input-field w-full p-2 rounded text-white text-sm"
+                           onchange="updateDocumentItem(${itemIndex}, 'price', this.value)">
+                </div>
+                <div class="col-span-2">
+                    <input type="number" placeholder="รวม" readonly
+                           class="input-field w-full p-2 rounded text-white text-sm bg-white/20"
+                           id="itemTotal${itemIndex}">
+                </div>
+                <div class="col-span-1">
+                    <button type="button" onclick="removeDocumentItem(${itemIndex})" 
+                            class="bg-red-500 text-white p-2 rounded text-sm hover:bg-red-600 transition-colors">
+                        ?
+                    </button>
+                </div>
+            `;
+            
+            itemsList.appendChild(itemDiv);
+            documentItems.push({ description: '', quantity: 1, price: 0, total: 0 });
+        }
+
+        function updateDocumentItem(index, field, value) {
+            if (!documentItems[index]) return;
+            
+            documentItems[index][field] = field === 'description' ? value : parseFloat(value) || 0;
+            
+            // Calculate item total
+            const item = documentItems[index];
+            item.total = item.quantity * item.price;
+            
+            // Update display
+            const totalInput = document.getElementById(`itemTotal${index}`);
+            if (totalInput) {
+                totalInput.value = item.total.toFixed(2);
+            }
+            
+            // Update document totals
+            updateDocumentTotals();
+        }
+
+        function removeDocumentItem(index) {
+            documentItems.splice(index, 1);
+            loadDocumentItems();
+            updateDocumentTotals();
+        }
+
+        function loadDocumentItems() {
+            const itemsList = document.getElementById('itemsList');
+            itemsList.innerHTML = '';
+            documentItems.forEach((item, index) => {
+                addDocumentItem();
+                // Populate values
+                const inputs = itemsList.children[index].querySelectorAll('input');
+                inputs[0].value = item.description;
+                inputs[1].value = item.quantity;
+                inputs[2].value = item.price;
+                inputs[3].value = item.total.toFixed(2);
+            });
+        }
+
+        function updateDocumentTotals() {
+            const subtotal = documentItems.reduce((sum, item) => sum + item.total, 0);
+            const tax = currentDocumentType === 'tax_invoice' ? subtotal * 0.07 : 0;
+            const total = subtotal + tax;
+            
+            document.getElementById('docSubtotal').value = subtotal.toFixed(2);
+            document.getElementById('docTax').value = tax.toFixed(2);
+            document.getElementById('docTotal').value = total.toFixed(2);
+        }
+
+        function generateDocumentPreview() {
+            const docData = {
+                number: document.getElementById('docNumber').value,
+                date: document.getElementById('docDate').value,
+                customer: guests.find(g => g.id == document.getElementById('docCustomer').value),
+                items: documentItems.filter(item => item.description),
+                subtotal: parseFloat(document.getElementById('docSubtotal').value),
+                tax: parseFloat(document.getElementById('docTax').value),
+                total: parseFloat(document.getElementById('docTotal').value),
+                type: currentDocumentType
+            };
+
+            if (currentDocumentType === 'tax_invoice') {
+                docData.taxId = document.getElementById('taxId').value;
+                docData.taxAddress = document.getElementById('taxAddress').value;
+            }
+
+            return generateDocumentHTML(docData);
+        }
+
+        function generateDocumentHTML(docData) {
+            const resortLogo = `
+                <svg width="80" height="80" viewBox="0 0 100 100" style="opacity: 0.1; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 0;">
+                    <circle cx="50" cy="50" r="45" fill="#667eea" opacity="0.3"/>
+                    <path d="M30 60 Q50 40 70 60 Q50 80 30 60" fill="#764ba2" opacity="0.5"/>
+                    <circle cx="35" cy="35" r="8" fill="#fbbf24"/>
+                    <path d="M20 70 L80 70 M25 75 L75 75" stroke="#10b981" stroke-width="2"/>
+                </svg>
+            `;
+
+            const logoHeader = `
+                <div style="display: flex; align-items: center; margin-bottom: 30px;">
+                    <svg width="60" height="60" viewBox="0 0 100 100" style="margin-right: 15px;">
+                        <circle cx="50" cy="50" r="45" fill="#667eea"/>
+                        <path d="M30 60 Q50 40 70 60 Q50 80 30 60" fill="#764ba2"/>
+                        <circle cx="35" cy="35" r="8" fill="#fbbf24"/>
+                        <path d="M20 70 L80 70 M25 75 L75 75" stroke="#10b981" stroke-width="2"/>
+                    </svg>
+                    <div>
+                        <h1 style="margin: 0; font-size: 24px; color: #667eea; font-weight: bold;">??? Paradise Resort</h1>
+                        <p style="margin: 0; color: #666; font-size: 14px;">123 หาดใหญ่ ตำบลบางเทา อำเภอหัวหิน จังหวัดประจวบคีรีขันธ์ 77110</p>
+                        <p style="margin: 0; color: #666; font-size: 14px;">โทร: 032-123-456 | อีเมล: info@paradiseresort.com</p>
+                    </div>
+                </div>
+            `;
+
+            const documentTitle = currentDocumentType === 'receipt' ? 'ใบเสร็จรับเงิน' : 
+                                currentDocumentType === 'invoice' ? 'ใบแจ้งค่าใช้จ่าย' : 'ใบกำกับภาษี';
+
+            return `
+                <div style="position: relative; font-family: 'Sarabun', sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; background: white; color: #333; line-height: 1.6;">
+                    ${resortLogo}
+                    <div style="position: relative; z-index: 1;">
+                        ${logoHeader}
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <h2 style="font-size: 28px; color: #667eea; margin: 0; font-weight: bold;">${documentTitle}</h2>
+                            <p style="margin: 5px 0; color: #666;">เลขที่: ${docData.number}</p>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0;">
+                            <div>
+                                <h3 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 5px;">ข้อมูลลูกค้า</h3>
+                                <p><strong>ชื่อ:</strong> ${docData.customer?.name || 'ไม่ระบุ'}</p>
+                                <p><strong>อีเมล:</strong> ${docData.customer?.email || 'ไม่ระบุ'}</p>
+                                <p><strong>โทรศัพท์:</strong> ${docData.customer?.phone || 'ไม่ระบุ'}</p>
+                                ${currentDocumentType === 'tax_invoice' ? `
+                                    <p><strong>เลขประจำตัวผู้เสียภาษี:</strong> ${docData.taxId || 'ไม่ระบุ'}</p>
+                                    <p><strong>ที่อยู่:</strong> ${docData.taxAddress || 'ไม่ระบุ'}</p>
+                                ` : ''}
+                            </div>
+                            <div>
+                                <h3 style="color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 5px;">ข้อมูลเอกสาร</h3>
+                                <p><strong>วันที่:</strong> ${new Date(docData.date).toLocaleDateString('th-TH')}</p>
+                                <p><strong>เลขที่เอกสาร:</strong> ${docData.number}</p>
+                                <p><strong>ประเภท:</strong> ${documentTitle}</p>
+                            </div>
+                        </div>
+
+                        <table style="width: 100%; border-collapse: collapse; margin: 30px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <thead>
+                                <tr style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+                                    <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">รายการ</th>
+                                    <th style="padding: 15px; text-align: center; border: 1px solid #ddd;">จำนวน</th>
+                                    <th style="padding: 15px; text-align: right; border: 1px solid #ddd;">ราคาต่อหน่วย</th>
+                                    <th style="padding: 15px; text-align: right; border: 1px solid #ddd;">รวม</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${docData.items.map((item, index) => `
+                                    <tr style="background: ${index % 2 === 0 ? '#f8f9ff' : 'white'};">
+                                        <td style="padding: 12px; border: 1px solid #ddd;">${item.description}</td>
+                                        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">${item.quantity}</td>
+                                        <td style="padding: 12px; text-align: right; border: 1px solid #ddd;">฿${item.price.toLocaleString()}</td>
+                                        <td style="padding: 12px; text-align: right; border: 1px solid #ddd;">฿${item.total.toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <div style="margin-top: 30px; text-align: right;">
+                            <div style="display: inline-block; min-width: 300px;">
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                                    <span>ยอดรวม:</span>
+                                    <span>฿${docData.subtotal.toLocaleString()}</span>
+                                </div>
+                                ${currentDocumentType === 'tax_invoice' ? `
+                                    <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                                        <span>ภาษีมูลค่าเพิ่ม 7%:</span>
+                                        <span>฿${docData.tax.toLocaleString()}</span>
+                                    </div>
+                                ` : ''}
+                                <div style="display: flex; justify-content: space-between; padding: 12px 0; font-size: 18px; font-weight: bold; color: #667eea; border-bottom: 2px solid #667eea;">
+                                    <span>ยอดสุทธิ:</span>
+                                    <span>฿${docData.total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 50px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px;">
+                            <div style="text-align: center;">
+                                <div style="border-top: 1px solid #333; margin-top: 60px; padding-top: 10px;">
+                                    <p style="margin: 0;">ลายเซ็นผู้รับเงิน</p>
+                                    <p style="margin: 5px 0; font-size: 14px;">Paradise Resort</p>
+                                </div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="border-top: 1px solid #333; margin-top: 60px; padding-top: 10px;">
+                                    <p style="margin: 0;">ลายเซ็นลูกค้า</p>
+                                    <p style="margin: 5px 0; font-size: 14px;">${docData.customer?.name || '........................'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 40px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #eee; padding-top: 20px;">
+                            <p>ขอบคุณที่ใช้บริการ Paradise Resort | www.paradiseresort.com</p>
+                            <p>เอกสารนี้ออกโดยระบบอัตโนมัติ วันที่ ${new Date().toLocaleDateString('th-TH')} เวลา ${new Date().toLocaleTimeString('th-TH')}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function viewDocument(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+
+            // Mock document data for preview
+            const mockData = {
+                number: doc.number,
+                date: doc.date,
+                customer: { name: doc.customerName, email: 'customer@email.com', phone: '081-234-5678' },
+                items: [
+                    { description: 'ค่าที่พัก 2 คืน', quantity: 2, price: 3000, total: 6000 }
+                ],
+                subtotal: doc.amount,
+                tax: doc.type === 'tax_invoice' ? doc.amount * 0.07 : 0,
+                total: doc.type === 'tax_invoice' ? doc.amount * 1.07 : doc.amount,
+                type: doc.type
+            };
+
+            currentDocumentType = doc.type;
+            const previewContent = generateDocumentHTML(mockData);
+            
+            document.getElementById('documentPreviewContent').innerHTML = previewContent;
+            document.getElementById('documentPreviewModal').classList.remove('hidden');
+            document.getElementById('documentPreviewModal').classList.add('flex');
+        }
+
+        function downloadDocument(docId) {
+            alert('?? กำลังสร้าง PDF... ฟีเจอร์นี้จะเชื่อมต่อกับ Google Drive เพื่อบันทึกเอกสาร');
+        }
+
+        function editDocument(docId) {
+            alert('?? เปิดหน้าแก้ไขเอกสาร ID: ' + docId);
+        }
+
+        // Event Listeners for Document Management
+        document.getElementById('createReceiptBtn').addEventListener('click', () => openDocumentModal('receipt'));
+        document.getElementById('createInvoiceBtn').addEventListener('click', () => openDocumentModal('invoice'));
+        document.getElementById('createTaxInvoiceBtn').addEventListener('click', () => openDocumentModal('tax_invoice'));
+
+        document.getElementById('addItemBtn').addEventListener('click', addDocumentItem);
+
+        document.getElementById('cancelDocument').addEventListener('click', () => {
+            document.getElementById('documentModal').classList.add('hidden');
+            document.getElementById('documentModal').classList.remove('flex');
+        });
+
+        document.getElementById('previewDocument').addEventListener('click', () => {
+            const previewContent = generateDocumentPreview();
+            document.getElementById('documentPreviewContent').innerHTML = previewContent;
+            document.getElementById('documentPreviewModal').classList.remove('hidden');
+            document.getElementById('documentPreviewModal').classList.add('flex');
+        });
+
+        document.getElementById('closePreviewBtn').addEventListener('click', () => {
+            document.getElementById('documentPreviewModal').classList.add('hidden');
+            document.getElementById('documentPreviewModal').classList.remove('flex');
+        });
+
+        document.getElementById('downloadPdfBtn').addEventListener('click', () => {
+            alert('?? กำลังสร้าง PDF และบันทึกใน Google Drive...\n\nฟีเจอร์นี้จะ:\n- สร้างไฟล์ PDF\n- อัปโหลดไปยัง Google Drive\n- ส่งลิงก์ให้ลูกค้าทางอีเมล');
+        });
+
+        document.getElementById('saveToGoogleDriveBtn').addEventListener('click', () => {
+            alert('?? บันทึกเอกสารใน Google Drive เรียบร้อย!\n\nเอกสารถูกบันทึกในโฟลเดอร์:\n?? Paradise Resort/Documents/2024/\n\nสามารถเข้าถึงได้ที่: https://drive.google.com/...');
+        });
+
+        document.getElementById('documentForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const newDoc = {
+                id: documents.length + 1,
+                number: document.getElementById('docNumber').value,
+                type: currentDocumentType,
+                customerName: guests.find(g => g.id == document.getElementById('docCustomer').value)?.name || 'ไม่ระบุ',
+                date: document.getElementById('docDate').value,
+                amount: parseFloat(document.getElementById('docTotal').value),
+                status: 'pending'
+            };
+            
+            documents.push(newDoc);
+            loadDocuments();
+            
+            document.getElementById('documentModal').classList.add('hidden');
+            document.getElementById('documentModal').classList.remove('flex');
+            
+            alert(`? สร้าง${getDocumentTypeName(currentDocumentType)}เรียบร้อยแล้ว!\n\nเลขที่เอกสาร: ${newDoc.number}\nบันทึกใน Google Drive อัตโนมัติ`);
+        });
+
+        // Initialize
+        loadDashboard();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98048f48b49def6c',t:'MTc1ODA2OTcwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
